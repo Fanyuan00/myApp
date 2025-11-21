@@ -1,0 +1,137 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-title>PC Builder Pro</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="toggleSearch()">
+        <ion-icon name="search" slot="icon-only"></ion-icon>
+      </ion-button>
+      <ion-button (click)="viewCart()">
+        <ion-icon name="cart" slot="icon-only"></ion-icon>
+        <ion-badge color="danger" *ngIf="cartItems.length > 0" class="cart-badge">{{cartItems.length}}</ion-badge>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+
+  <!-- Category Navigation Bar -->
+  <ion-toolbar color="light">
+    <ion-segment value="all" scrollable="true" (ionChange)="filterByCategory($event)">
+      <ion-segment-button value="all">
+        <ion-label>All Parts</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="gpu">
+        <ion-label>Graphics Cards</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="cpu">
+        <ion-label>Processors</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="motherboard">
+        <ion-label>Motherboards</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="memory">
+        <ion-label>Memory</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="storage">
+        <ion-label>Storage</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="cooling">
+        <ion-label>Cooling</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="psu">
+        <ion-label>Power Supply</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="case">
+        <ion-label>Cases</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">PC Builder Pro</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <!-- Search Bar -->
+  <ion-toolbar color="light" class="search-toolbar" *ngIf="showSearch">
+    <ion-searchbar 
+      placeholder="Search computer parts..." 
+      (ionInput)="searchProducts($event)"
+      [(ngModel)]="searchTerm"
+      animated="true"
+      class="custom-searchbar">
+    </ion-searchbar>
+  </ion-toolbar>
+
+  <!-- Cart Toast -->
+  <ion-toast 
+    [isOpen]="showCartToast" 
+    message="Product added to cart!"
+    [duration]="2000"
+    (didDismiss)="showCartToast = false"
+    position="top"
+    class="custom-toast">
+  </ion-toast>
+
+  <!-- Product Grid -->
+  <ion-grid class="product-grid">
+    <ion-row>
+      <ion-col size="12" size-sm="6" size-md="4" size-lg="3" 
+               *ngFor="let product of products | filterByCategory:selectedCategory | filterBySearch:searchTerm; trackBy: trackByProductId">
+        <ion-card class="product-card" (click)="viewProductDetails(product)">
+          <div class="image-container">
+            <img [alt]="product.name" [src]="product.image" (error)="handleImageError($event, product)" />
+            <ion-badge class="category-badge" [color]="getCategoryColor(product.category)">
+              {{getCategoryLabel(product.category)}}
+            </ion-badge>
+            <ion-badge class="rating-badge" color="warning">
+              ⭐ {{product.rating}}
+            </ion-badge>
+          </div>
+          <ion-card-header>
+            <ion-card-title class="product-title">{{product.name}}</ion-card-title>
+            <ion-card-subtitle class="product-brand">{{product.brand}}</ion-card-subtitle>
+          </ion-card-header>
+          <ion-card-content class="product-description">
+            {{product.description}}
+          </ion-card-content>
+          <div class="card-footer">
+            <ion-text color="success" class="price">
+              <h3>{{product.price}}</h3>
+            </ion-text>
+            <ion-button 
+              fill="solid" 
+              color="primary" 
+              size="small" 
+              (click)="$event.stopPropagation(); addToCart(product)"
+              [disabled]="isInCart(product)"
+              class="add-to-cart-btn">
+              <ion-icon 
+                [name]="isInCart(product) ? 'checkmark' : 'cart'" 
+                slot="start">
+              </ion-icon>
+              {{isInCart(product) ? 'Added' : 'Add to Cart'}}
+            </ion-button>
+          </div>
+        </ion-card>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+  <!-- Empty State -->
+  <div *ngIf="(products | filterByCategory:selectedCategory | filterBySearch:searchTerm).length === 0" class="empty-state">
+    <ion-icon name="search-outline" class="empty-icon"></ion-icon>
+    <h3>No products found</h3>
+    <p>Try adjusting your search or filter criteria</p>
+    <ion-button fill="outline" (click)="clearFilters()">Clear Filters</ion-button>
+  </div>
+
+  <!-- Floating Cart Button -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed" *ngIf="cartItems.length > 0">
+    <ion-fab-button color="primary" (click)="viewCart()">
+      <ion-icon name="cart"></ion-icon>
+      <ion-badge color="danger" class="floating-badge">{{cartItems.length}}</ion-badge>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>
